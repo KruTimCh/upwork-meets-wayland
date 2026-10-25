@@ -244,8 +244,14 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
         static unsigned char row[16384 * 4];
         size_t need = (size_t)width * 4;
         if (need > sizeof(row) || fread(row, 1, need, p) != need) {
+            /* transient capture failure: one retry after a short delay */
             pclose(p);
-            return pb;
+            sleep(1);
+            p = popen(cmd, "r");
+            if (!p)
+                return pb;
+            r = -1;
+            continue;
         }
         Guchar *dst = px + (size_t)r * rs;
         for (int c = 0; c < width; c++) {

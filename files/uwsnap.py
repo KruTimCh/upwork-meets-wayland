@@ -225,19 +225,23 @@ def capture(root_w, root_h):
     os.close(fd)
     os.remove(tmp)
     ok = False
-    try:
-        if backend == "command":
-            cmd = os.environ["UPWORK_SCREENSHOT_COMMAND"] + " " + tmp
-            subprocess.run(cmd, shell=True, timeout=40, env=ENV)
-            ok = _wait_file(tmp)
-        else:
-            ok = BACKENDS[backend](tmp)
-            if not ok and backend != "portal":
-                ok = cap_portal(tmp)  # universal fallback
-                backend = backend + "+portal" if ok else backend
-    except Exception as e:
-        print(f"[uwsnap] backend {backend} failed: {e}", file=sys.stderr)
-        sys.exit(3)
+    for attempt in range(3):          # transient compositor failures happen
+        try:
+            if backend == "command":
+                cmd = os.environ["UPWORK_SCREENSHOT_COMMAND"] + " " + tmp
+                subprocess.run(cmd, shell=True, timeout=40, env=ENV)
+                ok = _wait_file(tmp)
+            else:
+                ok = BACKENDS[backend](tmp)
+                if not ok and backend != "portal":
+                    ok = cap_portal(tmp)  # universal fallback
+                    backend = backend + "+portal" if ok else backend
+        except Exception as e:
+            print(f"[uwsnap] backend {backend} failed: {e}", file=sys.stderr)
+        if ok:
+            break
+        log(f"attempt {attempt + 1}/3 failed for backend {backend}")
+        time.sleep(1.5)
     if not ok:
         log(f"backend {backend} produced no capture")
         print(f"[uwsnap] backend {backend} produced no capture", file=sys.stderr)
