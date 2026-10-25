@@ -393,7 +393,9 @@ def emit_region(shot, root_w, root_h, x, y, w, h):
         sys.stdout.buffer.write(out.tobytes("raw", "BGRX"))
         return
 
-    if act:
+    # Only substitute when active-screen mode is forced via the flag file;
+    # otherwise per-monitor grabs (all-screens mode) are captured faithfully.
+    if act and os.path.exists(ACTIVE_FLAG):
         req_monitor = next((r for r in rects if covers(req, r, 0.85)), None)
         if req_monitor and not covers(act, req_monitor, 0.85):
             mx, my, mw, mh = act
