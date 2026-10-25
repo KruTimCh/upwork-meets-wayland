@@ -118,6 +118,9 @@ all installed files.
 
 - [docs/reverse-engineering.md](docs/reverse-engineering.md) — how the snap
   flow was mapped from the binary, and every dead end (so you don't repeat it)
+- [docs/debugging-chronicle.md](docs/debugging-chronicle.md) — the full
+  debugging story: what was tried, what worked, and the open all-screens
+  investigation with tomorrow's procedure
 
 ## License
 
