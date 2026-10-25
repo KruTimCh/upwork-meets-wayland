@@ -42,6 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <stdint.h>
 #include <stdarg.h>
@@ -51,6 +52,23 @@
 #ifndef UWSNAP_HELPER_DEFAULT
 #define UWSNAP_HELPER_DEFAULT "$HOME/.local/bin/uwsnap.py"
 #endif
+
+static void ulog(const char *fmt, ...)
+{
+    FILE *f = fopen("/tmp/uwsnap.log", "a");
+    if (!f)
+        return;
+    time_t t = time(NULL);
+    struct tm tm;
+    localtime_r(&t, &tm);
+    fprintf(f, "%02d:%02d:%02d ", tm.tm_hour, tm.tm_min, tm.tm_sec);
+    va_list ap;
+    va_start(ap, fmt);
+    vfprintf(f, fmt, ap);
+    va_end(ap);
+    fputc('\n', f);
+    fclose(f);
+}
 
 __attribute__((constructor)) static void uwsnap_init(void)
 {
@@ -209,7 +227,7 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
     if (nonblack >= 12)
         return pb;                      /* real content — nothing to do */
 
-    fprintf(stderr, "[uwsnap] gdk capture %dx%d+%d+%d was black -> refilling\n",
+    ulog("[uwsnap] gdk capture %dx%d+%d+%d was black -> refilling\n",
             width, height, sx, sy);
 
     Display *dpy = ensure_xdisplay();
@@ -237,7 +255,7 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
         }
     }
     pclose(p);
-    fprintf(stderr, "[uwsnap] gdk refill done\n");
+    ulog("[uwsnap] gdk refill done");
     return pb;
 }
 
@@ -311,7 +329,7 @@ static int fill_from_helper(XImage *img, int x, int y, Display *dpy)
         if (fread(row, 1, row_bytes, p) != row_bytes) { ok = 0; break; }
     }
     pclose(p);
-    fprintf(stderr, "[uwsnap] XImage filled %dx%d at +%d+%d ok=%d\n",
+    ulog("[uwsnap] XImage filled %dx%d at +%d+%d ok=%d\n",
             img->width, img->height, x, y, ok);
     return ok ? 0 : -3;
 }
@@ -326,10 +344,10 @@ XImage *XGetImage(Display *dpy, Drawable d, int x, int y, unsigned int w,
         /* the enhancing-snapshot defeat zeroes the root attributes; Upwork's
          * JS then issues a 0x0 XGetImage, which is a fatal X error if it
          * reaches the server — answer with a NULL image instead */
-        fprintf(stderr, "[uwsnap] XGetImage 0x0 ignored\n");
+        ulog("[uwsnap] XGetImage 0x0 ignored");
         return NULL;
     }
-    fprintf(stderr, "[uwsnap] XGetImage %ux%u+%d+%d upwork=%d\n",
+    ulog("[uwsnap] XGetImage %ux%u+%d+%d upwork=%d\n",
             w, h, x, y, in_upwork());
     XImage *img = real(dpy, d, x, y, w, h, plane_mask, format);
     if (img && img->data && in_upwork())

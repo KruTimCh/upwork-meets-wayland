@@ -69,6 +69,15 @@ def session_env():
 ENV = session_env()
 
 
+def log(msg):
+    """Shared log with the C shim — one file tells the whole story."""
+    try:
+        with open("/tmp/uwsnap.log", "a") as f:
+            f.write(time.strftime("%H:%M:%S ") + msg + "\n")
+    except OSError:
+        pass
+
+
 def run(cmd, timeout=20):
     return subprocess.run(cmd, capture_output=True, text=True,
                           timeout=timeout, env=ENV)
@@ -230,9 +239,11 @@ def capture(root_w, root_h):
         print(f"[uwsnap] backend {backend} failed: {e}", file=sys.stderr)
         sys.exit(3)
     if not ok:
+        log(f"backend {backend} produced no capture")
         print(f"[uwsnap] backend {backend} produced no capture", file=sys.stderr)
         sys.exit(3)
     os.replace(tmp, CACHE)
+    log(f"capture via {backend} -> {CACHE}")
     print(f"[uwsnap] capture via {backend}", file=sys.stderr)
     return CACHE
 
