@@ -220,15 +220,21 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
         return pb;
 
     /* all-black check (sampled): the XWayland root readback signature */
-    long nonblack = 0;
+    long nonblack = 0, samples = 0;
+    unsigned long long sum = 0;
     long step = (long)rs * height / 97 + 1;
-    for (long i = 0; i < (long)rs * height && nonblack < 12; i += step)
-        nonblack += (px[i] > 28 || px[i + 1] > 28 || px[i + 2] > 28);
+    for (long i = 0; i + 2 < (long)rs * height && samples < 4000;
+         i += step, samples++) {
+        sum += px[i] + px[i + 1] + px[i + 2];
+        if (samples < 12)
+            nonblack += (px[i] > 28 || px[i + 1] > 28 || px[i + 2] > 28);
+    }
+    ulog("[uwsnap] gdk grab %dx%d+%d+%d: nonblack=%ld/12 mean=%llu -> %s",
+         width, height, sx, sy, nonblack,
+         samples ? sum / (samples * 3) : 0,
+         nonblack >= 12 ? "looks-real passthrough" : "WAS-BLACK refilling");
     if (nonblack >= 12)
         return pb;                      /* real content — nothing to do */
-
-    ulog("[uwsnap] gdk capture %dx%d+%d+%d was black -> refilling\n",
-            width, height, sx, sy);
 
     Display *dpy = ensure_xdisplay();
     unsigned int rw = 3600, rh = 1080;
@@ -262,6 +268,24 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
     }
     pclose(p);
     ulog("[uwsnap] gdk refill done");
+    {
+        /* dump the refilled pixbuf: visual proof of what the app received */
+        static int (*gdk_save)(GdkPixbuf *, const char *, const char *,
+                               void **, ...);
+        if (!gdk_save)
+            gdk_save = (int (*)(GdkPixbuf *, const char *, const char *,
+                                void **, ...))(uintptr_t)gdk_sym("gdk_pixbuf_save");
+        if (gdk_save) {
+            char shot[64];
+            time_t t = time(NULL);
+            struct tm tm;
+            localtime_r(&t, &tm);
+            snprintf(shot, sizeof(shot), "/tmp/uwsnap-refilled-%02d%02d%02d.png",
+                     tm.tm_hour, tm.tm_min, tm.tm_sec);
+            gdk_save(pb, shot, "png", NULL);
+            ulog("[uwsnap] refilled pixbuf dumped to %s", shot);
+        }
+    }
     return pb;
 }
 
