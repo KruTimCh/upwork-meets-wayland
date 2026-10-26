@@ -1,18 +1,10 @@
 <p align="center">
-  <img src="docs/img/logo.svg" alt="Upwork meets Wayland logo" width="140">
+  <img src="docs/img/banner.png" alt="Upwork meets Wayland: real screenshots for the Upwork time tracker on Linux" width="100%">
 </p>
 
-<h1 align="center">Upwork meets Wayland</h1>
+# Upwork meets Wayland: fix for the Upwork time tracker on Linux (Wayland)
 
-<p align="center">
-  <b>Real screenshots for the Upwork tracker on Linux Wayland.</b><br>
-  X11 already worked. Now all of Linux does.<br>
-  <sub>Project name for search: <code>upwork-wayland-fix</code> · KDE · GNOME · Sway · Hyprland · COSMIC</sub>
-</p>
-
-# Upwork Wayland Fix: real screenshots for the Upwork time tracker on Linux
-
-**Fixes the Upwork desktop app on Wayland:** black screenshots in the Work Diary,
+**Upwork meets Wayland** (formerly `upwork-wayland-fix`) **fixes the Upwork desktop app on Wayland:** black screenshots in the Work Diary,
 *"Please switch to Xorg"*, *"Screenshots are not supported on Wayland"*, and the
 app window going black / crash-looping. One workaround for **KDE Plasma, GNOME,
 Sway, Hyprland, COSMIC and other Wayland compositors**, built from the best
@@ -78,8 +70,8 @@ Pillow, and a capture tool for your desktop. The installer asks for `sudo` only
 for the system-level steps (preload entry and the two Upwork file patches).
 
 ```bash
-git clone https://github.com/KruTimCh/upwork-wayland-fix
-cd upwork-wayland-fix/files
+git clone https://github.com/KruTimCh/upwork-meets-wayland
+cd upwork-meets-wayland/files
 ./install.sh
 ```
 
@@ -106,7 +98,7 @@ Paste this into Claude, ChatGPT or any coding assistant that can run commands on
 your machine:
 
 ```text
-Install https://github.com/KruTimCh/upwork-wayland-fix on my Linux machine so the
+Install https://github.com/KruTimCh/upwork-meets-wayland on my Linux machine so the
 Upwork desktop app takes real screenshots on Wayland. Read its README first.
 Detect my distro and desktop (echo $XDG_CURRENT_DESKTOP, cat /etc/os-release),
 install the prerequisites for my platform from the README, run files/install.sh

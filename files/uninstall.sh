@@ -1,5 +1,5 @@
 #!/bin/bash
-# upwork-wayland-fix uninstaller — restores Upwork to stock.
+# upwork-meets-wayland uninstaller — restores Upwork to stock.
 set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# upwork-wayland-fix installer — see README.md
+# upwork-meets-wayland installer — see README.md
 # Usage: sudo not required except where marked. Run from the repo's files/ dir
 # (or the repo root; it resolves its own directory).
 
@@ -7,7 +7,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
-echo "== upwork-wayland-fix installer =="
+echo "== upwork-meets-wayland installer =="
 # Where the Upwork app lives (deb/AUR install to /opt/Upwork). Override if different:
 #   UPWORK_DIR=/path/to/Upwork ./install.sh
 UPWORK_DIR="${UPWORK_DIR:-/opt/Upwork}"

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Upwork launcher for Wayland sessions — part of the upwork-wayland-fix.
+# Upwork launcher for Wayland sessions — part of the upwork-meets-wayland.
 #
 # What it does:
 #   1. verifies XWayland is available (Upwork renders through it)
