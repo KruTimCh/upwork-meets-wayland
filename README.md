@@ -51,7 +51,7 @@ Pillow, and a capture tool for your desktop. The installer asks for `sudo` only
 for the system-level steps (preload entry and the two Upwork file patches).
 
 ```bash
-git clone https://github.com/KruTimCH/upwork-wayland-fix
+git clone https://github.com/KruTimCh/upwork-wayland-fix
 cd upwork-wayland-fix/files
 ./install.sh
 ```
@@ -79,7 +79,7 @@ Paste this into Claude, ChatGPT or any coding assistant that can run commands on
 your machine:
 
 ```text
-Install https://github.com/KruTimCH/upwork-wayland-fix on my Linux machine so the
+Install https://github.com/KruTimCh/upwork-wayland-fix on my Linux machine so the
 Upwork desktop app takes real screenshots on Wayland. Read its README first.
 Detect my distro and desktop (echo $XDG_CURRENT_DESKTOP, cat /etc/os-release),
 install the prerequisites for my platform from the README, run files/install.sh
