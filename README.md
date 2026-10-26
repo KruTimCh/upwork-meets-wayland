@@ -26,15 +26,19 @@ Upwork encodes and uploads REAL pixels
 
 | Compositor | Capture backend | Status |
 |---|---|---|
-| KDE Plasma | Spectacle | ✅ tested end-to-end (active screen and all screens) |
-| GNOME | gnome-screenshot / Shell D-Bus | ✅ approach corroborated by two prior projects |
-| sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ backend documented, untested here |
-| COSMIC | xdg-desktop-portal Screenshot | ⚠️ untested here |
+| KDE Plasma 6 | Spectacle | ✅ **tested end-to-end** by the author (active screen + all screens) |
+| GNOME | gnome-screenshot / portal | 🟡 the approach is proven by the community projects credited below (tested there on Fedora, Ubuntu 24.04+, Arch); **this tool's GNOME backend is untested — testers wanted** |
+| Arch Linux (any DE) | per-DE backend | 🟡 community-tested approach (see credits); testers wanted |
+| sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ implemented, untested — testers wanted |
+| COSMIC | xdg-desktop-portal Screenshot | ⚠️ implemented, untested — testers wanted |
 | any, via portal | xdg-desktop-portal Screenshot | ⚠️ fallback; may ask consent once |
 | real X11 session | unnecessary — Upwork works natively | — |
 
-Validate on your system with `~/.local/bin/uwsnap.py --test` and open an issue
-with the output.
+### Help wanted: test your compositor
+
+Run `~/.local/bin/uwsnap.py --test` and open an issue with the output, your
+distro, compositor and Upwork version (and `/tmp/uwsnap.log` after one snap).
+I adapt the backends from your logs. Every report moves a ⚠️ to a ✅.
 
 ## Why Upwork fails on Wayland (reverse engineering)
 
@@ -122,6 +126,44 @@ all installed files.
 - [docs/debugging-chronicle.md](docs/debugging-chronicle.md) — the full
   debugging story: what was tried, what worked, and the open all-screens
   investigation with tomorrow's procedure
+
+## Purpose and disclaimer
+
+This workaround exists for **one reason**: so that the official Upwork
+time-tracker can take the **real screenshots of your real screen** on Wayland,
+where it otherwise captures black frames or refuses to run. It does not
+generate, edit or fake any content, and it must never be used to misrepresent
+your work or activity. Use it honestly and comply with Upwork's terms and your
+contract with your client.
+
+This is an unofficial, community project, **not affiliated with or endorsed by
+Upwork**. It modifies local copies of files of the Upwork desktop app on your
+machine (backups are kept; `uninstall.sh` restores them) and ships no Upwork
+code. You use it **at your own risk**. Any modification of this code, by anyone,
+is the responsibility of whoever makes it. No warranty (see the GPL-3.0
+license): the author is not responsible for data loss, account actions by
+Upwork, or any other consequence of using or modifying this software.
+
+## Credits
+
+This project combines and builds on the work of others. Thank you:
+
+- **[MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland)** — the
+  original idea: bridge Upwork's GNOME screenshot D-Bus interface to `grim`
+  for Sway / wlroots.
+- **[muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround)**
+  (MIT) — GNOME Wayland D-Bus bridge plus the `XDG_SESSION_TYPE=x11` launcher
+  trick; tested on Fedora 43+, Ubuntu 24.04+ and Arch.
+- **[tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland)**
+  (AUR `upwork-wayland`) — replacing Upwork's GDK capture calls with a shim
+  library and an external capture command; the "enhancing snapshot" handling
+  concept.
+
+What this project adds: black-frame detection with refill at the exact GDK call
+Upwork uses, multi-compositor capture backends, active-screen selection, the
+renderer crash-loop fix, and the fix for Upwork's `desktopCapturer`
+replacement that blacks out all-screens snaps. Full reverse-engineering notes
+are in `docs/`.
 
 ## License
 
