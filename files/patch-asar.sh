@@ -17,7 +17,7 @@
 # A backup is kept as app.asar.bak; uninstall.sh / `patch-asar.sh --restore`
 # puts it back.
 set -e
-ASAR=/opt/Upwork/resources/app.asar
+ASAR="${UPWORK_DIR:-/opt/Upwork}/resources/app.asar"
 
 if [ "$1" = "--restore" ]; then
     [ -f "$ASAR.bak" ] || { echo "no backup at $ASAR.bak"; exit 1; }

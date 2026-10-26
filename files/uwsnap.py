@@ -43,7 +43,7 @@ def session_env():
     runtime = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{uid}"
     env = {
         "PATH": os.environ.get("PATH") or "/usr/bin:/bin",
-        "HOME": os.environ.get("HOME") or f"/home/{os.environ.get('USER', 'tims')}",
+        "HOME": os.environ.get("HOME") or os.path.expanduser("~"),
         "DISPLAY": os.environ.get("DISPLAY") or ":1",
         "XDG_RUNTIME_DIR": runtime,
         "DBUS_SESSION_BUS_ADDRESS": os.environ.get("DBUS_SESSION_BUS_ADDRESS")

@@ -8,12 +8,22 @@ DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$DIR"
 
 echo "== upwork-wayland-fix installer =="
+# Where the Upwork app lives (deb/AUR install to /opt/Upwork). Override if different:
+#   UPWORK_DIR=/path/to/Upwork ./install.sh
+UPWORK_DIR="${UPWORK_DIR:-/opt/Upwork}"
+export UPWORK_DIR
 
 # ---------------------------------------------------------------- checks
-[ -f /opt/Upwork/upwork ] || { echo "WARNING: /opt/Upwork/upwork not found — is the Upwork app installed?"; }
+[ -f "$UPWORK_DIR/upwork" ] || { echo "ERROR: $UPWORK_DIR/upwork not found — install the Upwork app first (or set UPWORK_DIR)"; exit 1; }
 command -v gcc >/dev/null || { echo "ERROR: gcc missing (build-essential)"; exit 1; }
 command -v python3 >/dev/null || { echo "ERROR: python3 missing"; exit 1; }
-python3 -c "import PIL" 2>/dev/null || { echo "ERROR: python3-pil missing (Pillow)"; exit 1; }
+python3 -c "import PIL" 2>/dev/null || {
+    echo "ERROR: Pillow missing. Install it for your distro:"
+    echo "  Debian/Ubuntu/KDE neon: sudo apt install python3-pil"
+    echo "  Fedora:                 sudo dnf install python3-pillow"
+    echo "  Arch/Manjaro:           sudo pacman -S python-pillow"
+    echo "  openSUSE:               sudo zypper install python3-Pillow"
+    exit 1; }
 
 # capture tool per detected desktop (only a warning — the portal fallback may cover it)
 DE="${XDG_CURRENT_DESKTOP:-}"; SESSION="${XDG_SESSION_TYPE:-}"
@@ -28,17 +38,25 @@ esac
 # ---------------------------------------------------------------- 1. shim
 echo "== 1. building the shim"
 X11_INC="${X11_INC:-$HOME/.local/include}"
-if [ ! -f "$X11_INC/X11/Xlib.h" ]; then
-    echo "   X11 headers not in $X11_INC — fetching user-locally (no sudo)"
-    mkdir -p "$X11_INC/X11/extensions" /tmp/uwfix-hdr && cd /tmp/uwfix-hdr
-    for pkg in libx11-dev x11proto-dev libxext-dev; do
-        apt download "$pkg" 2>/dev/null || true
-    done
-    for f in *.deb; do dpkg -x "$f" /tmp/uwfix-hdr/root; done
-    cp -r /tmp/uwfix-hdr/root/usr/include/X11/* "$X11_INC/X11/" 2>/dev/null || true
-    cp -r /tmp/uwfix-hdr/root/usr/include/X11/extensions/* "$X11_INC/X11/extensions/" 2>/dev/null || true
-    cd "$DIR"
+if [ ! -f "$X11_INC/X11/Xlib.h" ] && [ ! -f /usr/include/X11/Xlib.h ]; then
+    if command -v apt >/dev/null; then
+        echo "   X11 headers missing — fetching user-locally (no sudo, Debian/Ubuntu)"
+        mkdir -p "$X11_INC/X11/extensions" /tmp/uwfix-hdr && cd /tmp/uwfix-hdr
+        for pkg in libx11-dev x11proto-dev libxext-dev; do
+            apt download "$pkg" 2>/dev/null || true
+        done
+        for f in *.deb; do dpkg -x "$f" /tmp/uwfix-hdr/root; done
+        cp -r /tmp/uwfix-hdr/root/usr/include/X11/* "$X11_INC/X11/" 2>/dev/null || true
+        cd "$DIR"
+    else
+        echo "ERROR: X11 development headers missing. Install them for your distro:"
+        echo "  Fedora:       sudo dnf install gcc libX11-devel libXext-devel"
+        echo "  Arch/Manjaro: sudo pacman -S base-devel libx11 libxext"
+        echo "  openSUSE:     sudo zypper install gcc libX11-devel libXext-devel"
+        exit 1
+    fi
 fi
+[ -f "$X11_INC/X11/Xlib.h" ] || X11_INC=/usr/include
 mkdir -p "$HOME/.local/lib" "$HOME/.local/bin"
 gcc -shared -fPIC -O2 -o "$HOME/.local/lib/libuwsnap.so" libuwsnap.c \
     -ldl -I "$X11_INC"
@@ -46,10 +64,10 @@ gcc -shared -fPIC -O2 -o "$HOME/.local/lib/libuwsnap.so" libuwsnap.c \
 # ---------------------------------------------------------------- 2. preload
 echo "== 2. installing the preload (system-wide, survives Chromium env stripping)"
 if grep -q libuwsnap /etc/ld.so.preload 2>/dev/null; then
-    sed -i "s|.*libuwsnap.*|$HOME/.local/lib/libuwsnap.so|" /etc/ld.so.preload
+    sudo sed -i "s|.*libuwsnap.*|$HOME/.local/lib/libuwsnap.so|" /etc/ld.so.preload
     echo "   updated existing entry"
 else
-    echo "$HOME/.local/lib/libuwsnap.so" >> /etc/ld.so.preload
+    echo "$HOME/.local/lib/libuwsnap.so" | sudo tee -a /etc/ld.so.preload >/dev/null
     echo "   added to /etc/ld.so.preload"
 fi
 
@@ -60,19 +78,21 @@ install -m 755 upwork-launcher.sh "$HOME/.local/bin/upwork"
 
 # ---------------------------------------------------------------- 4. addon patch
 echo "== 4. patching uta_native.node (renames the GDK import to the refill)"
-NODE=/opt/Upwork/uta_native.node
+NODE="$UPWORK_DIR/uta_native.node"
 if [ ! -f "$NODE.bak" ]; then
     sudo cp "$NODE" "$NODE.bak"
     echo "   backup saved: $NODE.bak"
 fi
-sudo python3 - <<'PY'
-data = open("/opt/Upwork/uta_native.node", "rb").read()
+sudo env UPWORK_DIR="$UPWORK_DIR" python3 - <<'PY'
+import os
+NODE = os.environ["UPWORK_DIR"] + "/uta_native.node"
+data = open(NODE, "rb").read()
 old = b"gdk_pixbuf_get_from_window\x00"
 new = b"uwsnap_gdk_pixbuf_refill\x00\x00\x00"
 if new in data:
     print("   already patched")
 elif old in data:
-    open("/opt/Upwork/uta_native.node", "wb").write(data.replace(old, new))
+    open(NODE, "wb").write(data.replace(old, new))
     print("   patched")
 else:
     raise SystemExit("   ERROR: import string not found — Upwork version changed? Report this.")
@@ -80,7 +100,7 @@ PY
 
 # ---------------------------------------------------------------- 4b. asar patch
 echo "== 4b. disabling Upwork's desktopCapturer screensnap replacement (all-screens fix)"
-sudo sh "$DIR/patch-asar.sh"
+sudo env UPWORK_DIR="$UPWORK_DIR" sh "$DIR/patch-asar.sh"
 
 # ---------------------------------------------------------------- 5. desktop entry
 echo "== 5. desktop entry"

@@ -39,4 +39,4 @@ if [ -f "$SHIM" ]; then
     export LD_PRELOAD="$SHIM${LD_PRELOAD:+:$LD_PRELOAD}"
 fi
 
-exec "${UPWORK_BIN:-/opt/Upwork/upwork}" --no-sandbox --js-flags=--noexpose-wasm "$@"
+exec "${UPWORK_BIN:-${UPWORK_DIR:-/opt/Upwork}/upwork}" --no-sandbox --js-flags=--noexpose-wasm "$@"
