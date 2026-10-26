@@ -27,6 +27,17 @@ Upwork encodes and uploads REAL pixels
 > screenshots of your real screen** on Wayland. It does not create, edit or fake
 > any screenshot or activity data. See [Disclaimer](#purpose-and-disclaimer).
 
+## Proof it works
+
+Real KDE Plasma 6 Wayland session (`XDG_SESSION_TYPE=wayland`), Upwork 5.8.0-35,
+all-screens mode. Left: the tracker's "Latest screenshot" shows both monitors
+(right screen blurred for privacy). Right: the same snap in the web Work Diary.
+
+<p>
+<img src="docs/img/time-tracker-real-screenshot.png" alt="Upwork Time Tracker showing a real two-monitor screenshot on Wayland" width="300">
+<img src="docs/img/work-diary-real-screenshot.png" alt="Upwork Work Diary entry with the uploaded screenshot" width="620">
+</p>
+
 ## Status
 
 | Compositor | Capture backend | Status |

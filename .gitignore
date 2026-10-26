@@ -3,3 +3,5 @@ __pycache__/
 *.png
 *.raw
 *.png
+
+!docs/img/*.png
