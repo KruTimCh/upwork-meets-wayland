@@ -236,6 +236,14 @@ neutralise the *use* of its result instead.
 - App log lives in `~/.Upwork/Upwork/Logs/upwork..YYYYMMDD.log`
   (`Electron Screensnap succeeded`, `screenSnap` blocks with filename/size).
 
+- **Links ("View work diary") open via a `kioexec` window instead of the
+  browser** — not caused by this fix. Upwork's `shell.openExternal` runs
+  `xdg-open` → `kde-open`; if the default browser's `.desktop` file has an
+  `Exec=` line without `%u`/`%U`, KDE falls back to `kioexec`
+  (`journalctl | grep kioexec`: "contains supported protocols but doesn't use
+  %u or %U"). Fix: add `%U` to the main `Exec=` line of the browser's
+  `.desktop` file. (Seen with a custom Brave wrapper launcher.)
+
 ### Verification procedure
 
 1. Start Upwork via the launcher, set **all screens**, start tracking.
