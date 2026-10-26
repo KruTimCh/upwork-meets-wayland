@@ -1,3 +1,14 @@
+<p align="center">
+  <img src="docs/img/logo.svg" alt="Upwork meets Wayland logo" width="140">
+</p>
+
+<h1 align="center">Upwork meets Wayland</h1>
+
+<p align="center">
+  <b>Real screenshots for the Upwork time tracker on Linux.</b><br>
+  <sub>Project name for search: <code>upwork-wayland-fix</code> · KDE · GNOME · Sway · Hyprland · COSMIC</sub>
+</p>
+
 # Upwork Wayland Fix: real screenshots for the Upwork time tracker on Linux
 
 **Fixes the Upwork desktop app on Wayland:** black screenshots in the Work Diary,
