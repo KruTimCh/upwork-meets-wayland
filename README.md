@@ -5,7 +5,8 @@
 <h1 align="center">Upwork meets Wayland</h1>
 
 <p align="center">
-  <b>Real screenshots for the Upwork time tracker on Linux.</b><br>
+  <b>Real screenshots for the Upwork tracker on Linux Wayland.</b><br>
+  X11 already worked. Now all of Linux does.<br>
   <sub>Project name for search: <code>upwork-wayland-fix</code> · KDE · GNOME · Sway · Hyprland · COSMIC</sub>
 </p>
 
@@ -16,6 +17,10 @@
 app window going black / crash-looping. One workaround for **KDE Plasma, GNOME,
 Sway, Hyprland, COSMIC and other Wayland compositors**, built from the best
 community fixes plus new reverse-engineering of the Upwork app.
+
+**Why it matters:** on a real X11 session the Upwork tracker already works. Wayland
+was the missing piece. This closes the circle, so the whole Linux desktop can use
+Upwork's time tracker with real screenshots.
 
 Works with the official Upwork desktop app 5.8.x (Electron 18). Nothing of
 Upwork is redistributed: the installer patches your own local copy (backups are
