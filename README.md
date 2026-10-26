@@ -1,13 +1,14 @@
-# upwork-wayland-fix
+# Upwork Wayland Fix: real screenshots for the Upwork time tracker on Linux
 
-**Upwork time-tracker screenshots and stable rendering on Wayland** — for KDE
-Plasma, GNOME, COSMIC and wlroots compositors (sway/Hyprland/river/labwc/
-Wayfire). No more black screenshots, no "please switch to Xorg", no
-crash-looping app window.
+**Fixes the Upwork desktop app on Wayland:** black screenshots in the Work Diary,
+*"Please switch to Xorg"*, *"Screenshots are not supported on Wayland"*, and the
+app window going black / crash-looping. One workaround for **KDE Plasma, GNOME,
+Sway, Hyprland, COSMIC and other Wayland compositors**, built from the best
+community fixes plus new reverse-engineering of the Upwork app.
 
-Works with the official Upwork desktop app 5.8.x (Electron 18). Nothing in
-Upwork is replaced — one import string inside its native module is renamed so
-its capture call lands in a shim that substitutes real screen pixels.
+Works with the official Upwork desktop app 5.8.x (Electron 18). Nothing of
+Upwork is redistributed: the installer patches your own local copy (backups are
+kept, one command restores everything).
 
 ```
 Upwork snap:  gdk_pixbuf_get_from_window(XWayland root)  →  all-black frame
@@ -22,76 +23,80 @@ uwsnap.py → Spectacle / gnome-screenshot / grim / xdg-desktop-portal
 Upwork encodes and uploads REAL pixels
 ```
 
+> **Purpose.** This exists only so the official tracker can capture the **real
+> screenshots of your real screen** on Wayland. It does not create, edit or fake
+> any screenshot or activity data. See [Disclaimer](#purpose-and-disclaimer).
+
 ## Status
 
 | Compositor | Capture backend | Status |
 |---|---|---|
 | KDE Plasma 6 | Spectacle | ✅ **tested end-to-end** by the author (active screen + all screens) |
-| GNOME | gnome-screenshot / portal | 🟡 the approach is proven by the community projects credited below (tested there on Fedora, Ubuntu 24.04+, Arch); **this tool's GNOME backend is untested — testers wanted** |
+| GNOME | gnome-screenshot / portal | 🟡 approach proven by the community projects below (tested there on Fedora, Ubuntu 24.04+, Arch); **this tool's GNOME backend is untested: testers wanted** |
 | Arch Linux (any DE) | per-DE backend | 🟡 community-tested approach (see credits); testers wanted |
-| sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ implemented, untested — testers wanted |
-| COSMIC | xdg-desktop-portal Screenshot | ⚠️ implemented, untested — testers wanted |
+| sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ implemented, untested: testers wanted |
+| COSMIC | xdg-desktop-portal Screenshot | ⚠️ implemented, untested: testers wanted |
 | any, via portal | xdg-desktop-portal Screenshot | ⚠️ fallback; may ask consent once |
-| real X11 session | unnecessary — Upwork works natively | — |
+| real X11 session | unnecessary, Upwork works natively | n/a |
 
-### Help wanted: test your compositor
-
-Run `~/.local/bin/uwsnap.py --test` and open an issue with the output, your
-distro, compositor and Upwork version (and `/tmp/uwsnap.log` after one snap).
-I adapt the backends from your logs. Every report moves a ⚠️ to a ✅.
-
-## Why Upwork fails on Wayland (reverse engineering)
-
-The official app's snap module (`uta_native.node`) captures through GDK:
-
-```
-uta::DesktopSessionAgent::SnapWholeDesktop()
-└─ gdk_pixbuf_get_from_window(root_window)   ← all-black on Wayland
-```
-
-Under Wayland no compositor draws into the XWayland root window (that is a
-compositor-independent property of XWayland), so the pixbuf comes back black
-and gets uploaded. The app's own gate (`isWayland()`) normally refuses to snap
-at all and shows "Screenshots are not supported on Wayland" — spoofs that
-claim to be X11 make it snap into the black.
-
-Separately, the app's renderers crash-loop on some stacks with a V8 CHECK
-(`UnwindAndFindHandler`, SIGILL / "bad IPC message") — fixed by disabling
-WebAssembly (`--js-flags=--noexpose-wasm`).
-
-Prior art that independently arrived at parts of this:
-[MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland),
-[muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround),
-[tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland)
-(AUR `upwork-wayland`). This project combines the GDK-call replacement with a
-black-detect refill, active-screen selection, multi-compositor capture
-backends and a crash fix — see **docs/reverse-engineering.md** for the full
-story including the bisection that found the renderer-kill.
+**Help wanted:** run `~/.local/bin/uwsnap.py --test` and open a
+[compositor report](../../issues/new?template=compositor-report.yml) with the
+output. Every report turns a ⚠️ into a ✅ and I adapt the backends from your logs.
 
 ## Install
 
+You need the Upwork desktop app installed first (default location `/opt/Upwork`;
+set `UPWORK_DIR=/path/to/Upwork` if yours differs), a C compiler, Python 3 with
+Pillow, and a capture tool for your desktop. The installer asks for `sudo` only
+for the system-level steps (preload entry and the two Upwork file patches).
+
 ```bash
-git clone https://github.com/<you>/upwork-wayland-fix
+git clone https://github.com/KruTimCH/upwork-wayland-fix
 cd upwork-wayland-fix/files
 ./install.sh
 ```
 
-The installer: builds the shim (fetches X11 headers user-locally if missing),
-installs the preload (`/etc/ld.so.preload` — survives Chromium's environment
-sanitization), patches the one import string inside `/opt/Upwork/uta_native.node`
-(a `.bak` backup is kept), applies the `app.asar` patch that stops Upwork replacing the good snap with a black `desktopCapturer` image (all-screens mode), installs the helper + launcher + desktop entry, and
-enables active-screen mode.
+Then **fully close and restart Upwork** (use the new launcher/desktop entry).
+The first snap of each 10-minute block takes about 2 s longer.
 
-Then **fully close and restart the Upwork app**. The first snap of each
-10-minute block takes ~2 s longer (the real capture happens then).
+### Dependencies per platform
+
+| Platform | Install the prerequisites |
+|---|---|
+| **Ubuntu / Debian / KDE neon** | `sudo apt install build-essential python3-pil` + `spectacle` (KDE) / `gnome-screenshot` (GNOME) / `grim` (sway, Hyprland…) |
+| **Fedora** | `sudo dnf install gcc libX11-devel libXext-devel python3-pillow` + `spectacle` / `gnome-screenshot` / `grim` |
+| **Arch / Manjaro** | `sudo pacman -S base-devel libx11 libxext python-pillow` + `spectacle` / `gnome-screenshot` / `grim` |
+| **openSUSE** | `sudo zypper install gcc libX11-devel libXext-devel python3-Pillow` + capture tool |
+| **COSMIC / other** | no extra tool needed: uses `xdg-desktop-portal` (may ask for consent once) |
+
+Pick the capture tool for **your** desktop: Spectacle on KDE, `gnome-screenshot`
+on GNOME, `grim` on wlroots compositors. The installer detects your desktop and
+warns if the tool is missing.
+
+### Install it with your AI assistant
+
+Paste this into Claude, ChatGPT or any coding assistant that can run commands on
+your machine:
+
+```text
+Install https://github.com/KruTimCH/upwork-wayland-fix on my Linux machine so the
+Upwork desktop app takes real screenshots on Wayland. Read its README first.
+Detect my distro and desktop (echo $XDG_CURRENT_DESKTOP, cat /etc/os-release),
+install the prerequisites for my platform from the README, run files/install.sh
+(it needs sudo for the preload and the two Upwork patches), then run
+~/.local/bin/uwsnap.py --test and tell me if the verdict is REAL. Do not push or
+change anything else. If my desktop is not marked tested, tell me to open a
+compositor report with the --test output.
+```
 
 ### Capture modes
 
-- **Active screen** (default): the focused monitor fills the whole snap —
-  readable on any monitor size.
-- **All screens**: `rm ~/.config/uwsnap-active-only`
-- Upwork's own "active screen / all screens" setting is respected either way;
-  the shim corrects GDK's monitor pick (GDK cannot see Wayland focus).
+- **Active screen** (default after every Upwork restart): the focused monitor
+  fills the whole snap, readable on any monitor size.
+- **All screens**: switch it in Upwork's tracker window. Works since the
+  `app.asar` patch (see below). Upwork resets the choice to *active screen*
+  whenever it restarts.
+- Force active-screen-only regardless of Upwork's setting: `touch ~/.config/uwsnap-active-only`.
 
 ### Custom capture command
 
@@ -99,33 +104,72 @@ Then **fully close and restart the Upwork app**. The first snap of each
 export UPWORK_SCREENSHOT_COMMAND="flameshot full -p"   # output path appended
 ```
 
+### After an Upwork update
+
+Updates replace the patched files. Re-run `./install.sh` (it is idempotent).
+If it reports the patch target was not found, the app changed: open an issue
+with your Upwork version.
+
 ## Uninstall
 
 ```bash
 ./files/uninstall.sh
 ```
 
-Restores the original `uta_native.node` from backup, removes the preload and
-all installed files.
+Restores the original `uta_native.node` and `app.asar` from backup and removes
+every installed file.
+
+## Why it breaks, in short
+
+1. The app captures with `gdk_pixbuf_get_from_window(root)`, the **XWayland root
+   window**, which no Wayland compositor draws into: an all-black frame.
+2. In all-screens mode Upwork then **replaces** the native snap with an Electron
+   `desktopCapturer` image that is also black but passes its `!isEmpty()` check.
+3. Separately, the app's renderers crash-loop on some stacks (V8 CHECK in
+   `UnwindAndFindHandler`), fixed with `--js-flags=--noexpose-wasm`.
+
+Full write-ups: [reverse-engineering notes](docs/reverse-engineering.md),
+[debugging chronicle](docs/debugging-chronicle.md) (every dead end),
+[technical brief for Upwork's engineers](docs/upwork-technical-brief.md).
+
+## Other community fixes (and when to use them)
+
+This project combines and extends them. If one of these fits your setup better,
+use it, and please credit them:
+
+| Project | Best for | Technique |
+|---|---|---|
+| [muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround) (MIT) | **GNOME Wayland** | D-Bus bridge implementing `org.gnome.Shell.Screenshot` with `grim`; tested on Fedora 43+, Ubuntu 24.04+, Arch |
+| [MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland) | **Sway / wlroots** | bridges Upwork's GNOME screenshot D-Bus interface to `grim` |
+| [tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland) (AUR `upwork-wayland`) | **Arch** (AUR) | shim library replacing Upwork's GDK capture calls, external capture command |
+| **this project** | **KDE** (tested) + all-in-one for the rest | black-frame detection at the exact GDK call, per-compositor backends, active-screen selection, crash fix, all-screens fix |
+
+Support for more compositors is planned: reports from real systems drive it.
 
 ## Troubleshooting
 
 | Symptom | Check | Fix |
 |---|---|---|
-| Black thumbnail, `refill done` in log | `uwsnap.py --test` | backend capture failing — install the tool for your DE |
-| Black app window | `grep -c 'Terminating renderer'` in the app's stderr log | renderer loop — verify the launcher flags are applied (`--noexpose-wasm`) |
+| Black thumbnail, `refill done` in `/tmp/uwsnap.log` | `uwsnap.py --test` | backend capture failing: install the capture tool for your desktop |
+| Black app window | `grep -c 'Terminating renderer'` in the app's stderr log | verify the launcher flags (`--noexpose-wasm`) |
 | "please switch to Xorg" placeholder | launcher used? | launch via `~/.local/bin/upwork`, not the stock binary |
-| Snap shows wrong monitor | active output detection | per-DE active-window support — see docs; report your compositor |
-| All-screens snap black, native `.png` replaced by a stitched `.jpg` | app log `screenSnap.filename` | run `sudo files/patch-asar.sh` (disables Upwork's desktopCapturer replacement) |
-| App never snaps (placeholder) | `ps eww $(pgrep -x upwork \| head -1) \| grep -o XDG_SESSION_TYPE=x11` | session spoof missing — use the launcher |
+| All-screens snap black, native `.png` replaced by a stitched `.jpg` | app log `screenSnap.filename` | re-run `sudo files/patch-asar.sh` |
+| Snap shows the wrong monitor | active output detection | per-desktop support: report your compositor |
+| "View work diary" opens a `kioexec` window (KDE) | `journalctl \| grep kioexec` | your browser's `.desktop` `Exec=` line lacks `%U`: add it |
+| App never snaps | `ps eww $(pgrep -x upwork \| head -1) \| grep -o XDG_SESSION_TYPE=x11` | session spoof missing: use the launcher |
 
-## Docs
+## FAQ
 
-- [docs/reverse-engineering.md](docs/reverse-engineering.md) — how the snap
-  flow was mapped from the binary, and every dead end (so you don't repeat it)
-- [docs/debugging-chronicle.md](docs/debugging-chronicle.md) — the full
-  debugging story: what was tried, what worked, and the open all-screens
-  investigation with tomorrow's procedure
+**Does this fake my activity or screenshots?** No. It only gives Upwork's own
+capture call real pixels of your real screen. Never use it to misrepresent your
+work.
+
+**Will Upwork ban me?** I can't promise anything about Upwork's policies. The fix
+changes nothing about what is captured or reported. I reported the root cause
+and a suggested official fix to Upwork support. Use it at your own risk and read
+the disclaimer.
+
+**Do I need it on X11?** No, Upwork works natively on a real X11 session.
 
 ## Purpose and disclaimer
 
@@ -148,28 +192,21 @@ Upwork, or any other consequence of using or modifying this software.
 
 This project combines and builds on the work of others. Thank you:
 
-- **[MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland)** — the
-  original idea: bridge Upwork's GNOME screenshot D-Bus interface to `grim`
+- **[MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland)**: the
+  original idea of bridging Upwork's GNOME screenshot D-Bus interface to `grim`
   for Sway / wlroots.
 - **[muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround)**
-  (MIT) — GNOME Wayland D-Bus bridge plus the `XDG_SESSION_TYPE=x11` launcher
-  trick; tested on Fedora 43+, Ubuntu 24.04+ and Arch.
+  (MIT): the GNOME Wayland D-Bus bridge and the `XDG_SESSION_TYPE=x11` launcher
+  trick, tested on Fedora 43+, Ubuntu 24.04+ and Arch.
 - **[tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland)**
-  (AUR `upwork-wayland`) — replacing Upwork's GDK capture calls with a shim
-  library and an external capture command; the "enhancing snapshot" handling
-  concept.
+  (AUR `upwork-wayland`): replacing Upwork's GDK capture calls with a shim
+  library and an external capture command.
 
 What this project adds: black-frame detection with refill at the exact GDK call
 Upwork uses, multi-compositor capture backends, active-screen selection, the
-renderer crash-loop fix, and the fix for Upwork's `desktopCapturer`
-replacement that blacks out all-screens snaps. Full reverse-engineering notes
-are in `docs/`.
+renderer crash-loop fix, and the fix for Upwork's `desktopCapturer` replacement
+that blacks out all-screens snaps.
 
 ## License
 
-GPL-3.0-or-later. Standing on the shoulders of
-[MarSoft](https://github.com/MarSoft/upwork-wayland),
-[muhammad-rafey](https://github.com/muhammad-rafey/upwork-wayland-workaround)
-and [tiesselune](https://github.com/tiesselune/upwork-wayland).
-
-Unofficial project. Comply with Upwork's terms of service.
+GPL-3.0-or-later. See [LICENSE](LICENSE).
