@@ -26,7 +26,7 @@ Upwork encodes and uploads REAL pixels
 
 | Compositor | Capture backend | Status |
 |---|---|---|
-| KDE Plasma | Spectacle | ✅ tested end-to-end |
+| KDE Plasma | Spectacle | ✅ tested end-to-end (active screen and all screens) |
 | GNOME | gnome-screenshot / Shell D-Bus | ✅ approach corroborated by two prior projects |
 | sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ backend documented, untested here |
 | COSMIC | xdg-desktop-portal Screenshot | ⚠️ untested here |
@@ -75,7 +75,7 @@ cd upwork-wayland-fix/files
 The installer: builds the shim (fetches X11 headers user-locally if missing),
 installs the preload (`/etc/ld.so.preload` — survives Chromium's environment
 sanitization), patches the one import string inside `/opt/Upwork/uta_native.node`
-(a `.bak` backup is kept), installs the helper + launcher + desktop entry, and
+(a `.bak` backup is kept), applies the `app.asar` patch that stops Upwork replacing the good snap with a black `desktopCapturer` image (all-screens mode), installs the helper + launcher + desktop entry, and
 enables active-screen mode.
 
 Then **fully close and restart the Upwork app**. The first snap of each
@@ -112,6 +112,7 @@ all installed files.
 | Black app window | `grep -c 'Terminating renderer'` in the app's stderr log | renderer loop — verify the launcher flags are applied (`--noexpose-wasm`) |
 | "please switch to Xorg" placeholder | launcher used? | launch via `~/.local/bin/upwork`, not the stock binary |
 | Snap shows wrong monitor | active output detection | per-DE active-window support — see docs; report your compositor |
+| All-screens snap black, native `.png` replaced by a stitched `.jpg` | app log `screenSnap.filename` | run `sudo files/patch-asar.sh` (disables Upwork's desktopCapturer replacement) |
 | App never snaps (placeholder) | `ps eww $(pgrep -x upwork \| head -1) \| grep -o XDG_SESSION_TYPE=x11` | session spoof missing — use the launcher |
 
 ## Docs

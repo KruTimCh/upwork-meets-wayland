@@ -1,0 +1,38 @@
+16:07:25 [uwsnap] gdk grab 1920x1080+0+0: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:07:26 capture via kde -> /tmp/uwsnap-last.png
+16:07:26 [uwsnap] gdk refill done
+16:09:13 [uwsnap] gdk grab 1920x1080+0+0: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:09:13 capture via kde -> /tmp/uwsnap-last.png
+16:09:13 [uwsnap] gdk refill done
+16:29:22 [uwsnap] gdk grab 1920x1080+0+0: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:29:23 capture via kde -> /tmp/uwsnap-last.png
+16:29:23 [uwsnap] gdk refill done
+16:29:23 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-162923.png
+16:35:19 [uwsnap] gdk grab 3600x1080+0+0: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:35:19 capture via kde -> /tmp/uwsnap-last.png
+16:35:19 [uwsnap] gdk refill done
+16:35:20 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-163519.png
+16:48:44 [uwsnap] gdk grab 1920x1080+0+0 nch=3 rs=5760 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:48:45 capture via kde -> /tmp/uwsnap-last.png
+16:48:45 [uwsnap] gdk refill done
+16:48:45 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-164845.png
+16:59:32 [uwsnap] gdk grab 3600x1080+0+0 nch=3 rs=10800 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+16:59:33 capture via kde -> /tmp/uwsnap-last.png
+16:59:33 [uwsnap] gdk refill done
+16:59:33 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-165933.png
+17:08:28 [uwsnap] gdk grab 1920x1080+0+0 nch=3 rs=5760 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+17:08:30 capture via kde -> /tmp/uwsnap-last.png
+17:08:30 [uwsnap] gdk refill done
+17:08:30 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-170830.png
+17:19:01 [uwsnap] gdk grab 1920x1080+0+0 nch=3 rs=5760 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+17:19:02 capture via kde -> /tmp/uwsnap-last.png
+17:19:02 [uwsnap] gdk refill done
+17:19:02 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-171902.png
+17:26:20 [uwsnap] gdk grab 3600x1080+0+0 nch=3 rs=10800 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+17:26:21 capture via kde -> /tmp/uwsnap-last.png
+17:26:21 [uwsnap] gdk refill done
+17:26:21 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-172621.png
+17:37:31 [uwsnap] gdk grab 3600x1080+0+0 nch=3 rs=10800 a0=-1: nonblack=0/12 mean=0 -> WAS-BLACK refilling
+17:37:32 capture via kde -> /tmp/uwsnap-last.png
+17:37:32 [uwsnap] gdk refill done
+17:37:32 [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-173732.png

@@ -17,6 +17,11 @@ else
     echo "   no backup found (was the fix installed?)"
 fi
 
+echo "== restoring app.asar from backup"
+if [ -f /opt/Upwork/resources/app.asar.bak ]; then
+    sudo sh "$DIR/patch-asar.sh" --restore
+fi
+
 echo "== removing files"
 rm -f "$HOME/.local/lib/libuwsnap.so"
 rm -f "$HOME/.local/bin/uwsnap.py"

@@ -153,72 +153,97 @@ captures was fixed on 2026-10-26 ~03:40).
 
 ---
 
-## Phase 5 — all-screens mode (OPEN — resume here)
+## Phase 5 — all-screens mode (diagnosed 2026-10-26, two bugs)
 
-**Status:** the pipeline refills correctly (log-proven repeatedly), but the
-user reports the uploaded snaps are still black / sometimes missing entirely.
+**Symptom:** snaps uploaded black (or missing) in all-screens mode, while
+active-screen mode worked. The shim log proved the refill was correct, so the
+failure sat somewhere else. It turned out to be two independent bugs.
 
-**Verified facts:**
+### 5a. Our own diagnostic crashed Upwork (fixed)
 
-- Whole-root grabs (3600×1080) are detected black and refilled; the capture
-  cache (`/tmp/uwsnap-last.png`) contains real both-screens content
-  (e.g. 03:16:26, 03:26:18, verified by pixel sampling).
-- `screenshotTaken` events fire for some snaps (03:04:20) but **not** for
-  others (02:44:32, 02:52:30 — those also match the user's black reports).
-- 02:52:30 root cause: transient Spectacle failure, old helper had one
-  attempt and no logging → fixed with retries (helper 3×, shim 1×) + file
-  logging.
-- Renderer terminations: 0 in the current build (the crash fixes hold).
+The refilled-pixbuf PNG dump added for this investigation called
+`gdk_pixbuf_save(pb, path, "png", NULL)` — a **variadic** function that needs
+`(…, GError **error, <key,value>…, NULL)`. The missing terminator made GDK read
+garbage as an option key → `strlen(garbage)` → **SIGSEGV on every refill**
+(coredump stack: `strlen ← g_strdup ← gdk_pixbuf_save ← libuwsnap.so`). The
+process died ~1 s after each `gdk refill done`, so snaps vanished and the app
+"kept crashing".
 
-**Current leading hypothesis:** the failure sits **between the refilled
-pixbuf and the upload** — either Upwork's "enhancing snapshot" second pass
-(which does *not* re-call `gdk_pixbuf_get_from_window` — no second refill
-markers) replaces the data, or the encode of the huge 3600×1080 pixbuf
-fails. The 02:44/02:52 snaps also show `XGetWP2r1:0:0` /
-`XGetWP4r1:0` warnings from `main.uta_native` (its own failing
-XGetWindowProperty queries — pre-existing since 00:28, present in working
-snaps too, so probably innocent).
+Fix: `gdk_save(pb, shot, "png", NULL, NULL)`, and the dump now only runs when
+`/tmp/uwsnap-dump` exists (a debug aid must not be able to crash the product
+path). Verified: snaps at 16:29, 16:35, 16:59 survived; the dumped PNG of the
+3600x1080 grab showed both monitors correctly.
 
-**Instrumentation deployed (2026-10-26 ~03:30):** the shim now logs to
-`/tmp/uwsnap.log` (file-based, survives stderr redirection) for every
-screen-sized grab:
+### 5b. Upwork's "Electron screensnap enhancement" overwrites the good image (fixed)
+
+Even with a perfect refill the thumbnail was black. Evidence:
+
+- the refilled pixbuf (dumped PNG) was real, 3600x1080;
+- the app log recorded the upload as `xxxxxxxx-x.jpg`, **4053x1200** — not our
+  3600x1080 (active-screen snaps are `screen.png`, native size);
+- the shim logged only one grab per snap, so the black image did not come
+  through GDK at all.
+
+Reading `out/main/main.js` from `app.asar` (`OSServices.collectUserActivity`):
+
+```js
+const z = yield utaNative.snapScreen(...)            // native snap  (our refill)
+J.screenSnap = {blob: z.data, filename: z.filename, ...}
+try {
+  ... yield desktopCapturer.getSources({types:["screen"], thumbnailSize:{...}})
+      .reduce((L,{thumbnail,display_id}) =>
+          ((!snapOnlyActiveDisplay || display_id.includes(`${activeDisplay.id}`))
+           && !thumbnail.isEmpty() && L.push(thumbnail.toPNG()), L), [])
+  if (re.length) { ...stitch into a JPEG...; J.screenSnap = {filename: uuid+".jpg", blob, ...} }
+} catch (L) { warn("Falling back to Native implementation. Electron Screensnap enhancement failed.") }
+```
+
+So Upwork takes the native snap, then **replaces** it with a stitched
+`desktopCapturer` JPEG whenever any non-empty thumbnail comes back. Under
+XWayland, Chromium's X11 capturer reads the same black root window, but a
+black thumbnail still has a size, so `!isEmpty()` passes and the good image is
+overwritten. In active-screen mode the `display_id.includes(activeId)` filter
+never matches on XWayland, the list stays empty, and the native snap survives —
+which is exactly why only all-screens broke.
+
+**Fix** (`files/patch-asar.sh`, needs root, backup `app.asar.bak`): a
+same-length byte edit in `/opt/Upwork/resources/app.asar`:
 
 ```
-HH:MM:SS [uwsnap] gdk grab 3600x1080+0+0: nonblack=X/12 mean=Y -> WAS-BLACK refilling
-HH:MM:SS capture via kde -> /tmp/uwsnap-last.png
-HH:MM:SS [uwsnap] gdk refill done
-HH:MM:SS [uwsnap] refilled pixbuf dumped to /tmp/uwsnap-refilled-HHMMSS.png
+if(re.length){const L=yield   →   if(0.0000000){const L=yield
 ```
 
-The **dumped PNG is the exact pixel data the app received** — visual proof at
-the boundary.
+`desktopCapturer` still runs and returns normally; its result is ignored, so
+the native (refilled) snap is kept. Electron 18 on Linux does not verify asar
+integrity.
 
-### Tomorrow's procedure
+**Gotcha (cost one snap):** the first version of the patch changed the source
+type `types:["screen"]` → `types:["scrnxx"]`. An unknown type makes
+`getSources` **hang** (never resolves), so `collectUserActivity` hits its
+30 s timeout (`Redux - collectUserActivity Timed out after 30 seconds`) and
+the tracker shows "Failed to take screenshot". Never make `getSources` invalid;
+neutralise the *use* of its result instead.
 
-1. Start Upwork (any normal way — all entry points run the launcher), enable
-   tracking, set **all screens**.
-2. Let one snap cycle land (~10 min).
-3. `cat /tmp/uwsnap.log | tail -20`
-4. Decision tree:
-   - Log shows `gdk grab … WAS-BLACK refilling` + `refill done` + a dumped
-     PNG that is **real** → the pixbuf the app received was real; the black
-     enters **downstream** (encode/upload). Next: interpose
-     `gdk_pixbuf_save_to_callback` as a logger (safe now — the toxic shadow
-     is gone) and dump what actually gets encoded.
-   - Dumped PNG is **black** → the refill fails inside the dock-launched
-     context → compare with a launcher-launched instance; suspect
-     environment (the helper rebuilds its env, but check
-     `WAYLAND_DISPLAY_REAL` propagation).
-   - Log shows `gdk grab … looks-real passthrough` → the "black" frame is
-     actually non-black garbage; loosen/adjust the detection (log the sample
-     values, decide a real threshold).
-   - No `gdk grab` line at all → the snap didn't reach the GDK path (the
-     DbusScreenshot branch) — check the app log for the snap time and
-     consider intercepting `uta::DbusScreenshot::Create`'s D-Bus call.
-5. ⚠️ `/tmp` does not survive a reboot — copy evidence into this repo's
-   `evidence/` folder before rebooting.
+### Other facts learned
 
----
+- Upwork resets the capture mode to **active screen** on every restart.
+- `FetchPixbufImage` does `gdk_pixbuf_scale_simple` (thumbnail 620x320) then
+  `gdk_pixbuf_save_to_callback` — no alpha handling issue (pixbuf is 3-channel
+  RGB, `nch=3`), so the alpha hypothesis was tested and ruled out.
+- Quitting Upwork (SIGTERM or window close) produces a coredump
+  (`SIGTRAP` at shutdown) — harmless; do not count those as crashes. Count
+  only dumps whose timestamp matches a snap.
+- App log lives in `~/.Upwork/Upwork/Logs/upwork..YYYYMMDD.log`
+  (`Electron Screensnap succeeded`, `screenSnap` blocks with filename/size).
+
+### Verification procedure
+
+1. Start Upwork via the launcher, set **all screens**, start tracking.
+2. After a snap: `tail /tmp/uwsnap.log` → `gdk grab 3600x1080 … WAS-BLACK
+   refilling` + `refill done`.
+3. App log: the new `screenSnap.filename` should be `screen.png`/native size,
+   **not** a `.jpg` at a stitched size.
+4. The tracker's "Latest screenshot" shows both monitors.
 
 ## Current deployed state (this machine)
 
@@ -229,6 +254,7 @@ the boundary.
 | Helper | `~/upwork-wayland-fix/files/uwsnap.py` → `~/.local/bin/uwsnap.py` | backends: kde/gnome/wlroots/cosmic/portal/command |
 | Launcher | `~/upwork-wayland-fix/files/upwork-launcher.sh` → `~/.local/bin/upwork` | flags: `--no-sandbox --js-flags=--noexpose-wasm` |
 | Desktop entry | `~/.local/share/applications/upwork.desktop` | points at the launcher |
+| Asar patch | `/opt/Upwork/resources/app.asar` | `if(re.length)`→`if(0.0000000)`; backup `app.asar.bak`; `files/patch-asar.sh [--restore]` |
 | Modes | `~/.config/uwsnap-active-only` | flag file present = force active screen; absent = all screens. **Currently absent (all screens).** |
 | Logs | `/tmp/uwsnap.log` (shim + helper) | ⚠️ not reboot-safe; copy before reboot |
 | Repo | `~/upwork-wayland-fix` (git) | README, docs/, files/, install/uninstall |

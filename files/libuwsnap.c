@@ -229,8 +229,8 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
         if (samples < 12)
             nonblack += (px[i] > 28 || px[i + 1] > 28 || px[i + 2] > 28);
     }
-    ulog("[uwsnap] gdk grab %dx%d+%d+%d: nonblack=%ld/12 mean=%llu -> %s",
-         width, height, sx, sy, nonblack,
+    ulog("[uwsnap] gdk grab %dx%d+%d+%d nch=%d rs=%d a0=%d: nonblack=%ld/12 mean=%llu -> %s",
+         width, height, sx, sy, nch, rs, nch == 4 ? px[3] : -1, nonblack,
          samples ? sum / (samples * 3) : 0,
          nonblack >= 12 ? "looks-real passthrough" : "WAS-BLACK refilling");
     if (nonblack >= 12)
@@ -264,12 +264,16 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
             dst[c * nch + 0] = row[c * 4 + 2];  /* R */
             dst[c * nch + 1] = row[c * 4 + 1];  /* G */
             dst[c * nch + 2] = row[c * 4 + 0];  /* B */
+            if (nch == 4)
+                dst[c * nch + 3] = 255;         /* opaque */
         }
     }
     pclose(p);
     ulog("[uwsnap] gdk refill done");
-    {
-        /* dump the refilled pixbuf: visual proof of what the app received */
+    if (access("/tmp/uwsnap-dump", F_OK) == 0) {
+        /* opt-in debug aid (touch /tmp/uwsnap-dump): dump the refilled pixbuf,
+         * visual proof of what the app received. gdk_pixbuf_save is variadic:
+         * error ptr, then a NULL-terminated key/value list. */
         static int (*gdk_save)(GdkPixbuf *, const char *, const char *,
                                void **, ...);
         if (!gdk_save)
@@ -282,7 +286,7 @@ GdkPixbuf *uwsnap_gdk_pixbuf_refill(GdkWindow *window, int sx, int sy,
             localtime_r(&t, &tm);
             snprintf(shot, sizeof(shot), "/tmp/uwsnap-refilled-%02d%02d%02d.png",
                      tm.tm_hour, tm.tm_min, tm.tm_sec);
-            gdk_save(pb, shot, "png", NULL);
+            gdk_save(pb, shot, "png", NULL, NULL);
             ulog("[uwsnap] refilled pixbuf dumped to %s", shot);
         }
     }

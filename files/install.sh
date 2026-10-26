@@ -78,6 +78,10 @@ else:
     raise SystemExit("   ERROR: import string not found — Upwork version changed? Report this.")
 PY
 
+# ---------------------------------------------------------------- 4b. asar patch
+echo "== 4b. disabling Upwork's desktopCapturer screensnap replacement (all-screens fix)"
+sudo sh "$DIR/patch-asar.sh"
+
 # ---------------------------------------------------------------- 5. desktop entry
 echo "== 5. desktop entry"
 mkdir -p "$HOME/.local/share/applications"
