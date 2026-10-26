@@ -144,6 +144,15 @@ use it, and please credit them:
 | [tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland) (AUR `upwork-wayland`) | **Arch** (AUR) | shim library replacing Upwork's GDK capture calls, external capture command |
 | **this project** | **KDE** (tested) + all-in-one for the rest | black-frame detection at the exact GDK call, per-compositor backends, active-screen selection, crash fix, all-screens fix |
 
+More community projects (links only, not reviewed by me; found on GitHub):
+[drsh4dow/upwork-wlroots-bridge](https://github.com/drsh4dow/upwork-wlroots-bridge)
+(Rust, wlroots screenshot + idle D-Bus servers),
+[badereddine-mechergui/upwork-wayland-screenshot-fix](https://github.com/badereddine-mechergui/upwork-wayland-screenshot-fix)
+(GNOME Wayland),
+[kellpossible/upwork-wayland](https://github.com/kellpossible/upwork-wayland),
+[niiithish/upwork-wayland-hyprland](https://github.com/niiithish/upwork-wayland-hyprland)
+(Hyprland / Omarchy).
+
 Support for more compositors is planned: reports from real systems drive it.
 
 ## Troubleshooting
@@ -201,6 +210,9 @@ This project combines and builds on the work of others. Thank you:
 - **[tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland)**
   (AUR `upwork-wayland`): replacing Upwork's GDK capture calls with a shim
   library and an external capture command.
+
+Thanks also to the authors of the other projects listed above; if I missed your
+work, open an issue and I'll add it.
 
 What this project adds: black-frame detection with refill at the exact GDK call
 Upwork uses, multi-compositor capture backends, active-screen selection, the
