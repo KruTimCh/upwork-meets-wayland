@@ -32,8 +32,8 @@ Upwork encodes and uploads REAL pixels
 | Compositor | Capture backend | Status |
 |---|---|---|
 | KDE Plasma 6 | Spectacle | ✅ **tested end-to-end** by the author (active screen + all screens) |
-| GNOME | gnome-screenshot / portal | 🟡 approach proven by the community projects below (tested there on Fedora, Ubuntu 24.04+, Arch); **this tool's GNOME backend is untested: testers wanted** |
-| Arch Linux (any DE) | per-DE backend | 🟡 community-tested approach (see credits); testers wanted |
+| GNOME | gnome-screenshot / portal | 🟡 **this tool's GNOME backend is untested: testers wanted.** The only project verified on this exact Upwork version on GNOME is [badereddine-mechergui's](https://github.com/badereddine-mechergui/upwork-wayland-screenshot-fix) (Ubuntu 26.04), use it if you need GNOME today |
+| Arch Linux (any DE) | per-DE backend | ⚠️ implemented, untested here: testers wanted (AUR `upwork-wayland` by tiesselune is the established alternative) |
 | sway / Hyprland / river / labwc / Wayfire | grim | ⚠️ implemented, untested: testers wanted |
 | COSMIC | xdg-desktop-portal Screenshot | ⚠️ implemented, untested: testers wanted |
 | any, via portal | xdg-desktop-portal Screenshot | ⚠️ fallback; may ask consent once |
@@ -128,6 +128,9 @@ every installed file.
 3. Separately, the app's renderers crash-loop on some stacks (V8 CHECK in
    `UnwindAndFindHandler`), fixed with `--js-flags=--noexpose-wasm`.
 
+Known gap: keyboard/mouse **activity counts** are not yet fed to Upwork on Wayland
+(planned, see [prior art](docs/prior-art.md)).
+
 Full write-ups: [reverse-engineering notes](docs/reverse-engineering.md),
 [debugging chronicle](docs/debugging-chronicle.md) (every dead end),
 [technical brief for Upwork's engineers](docs/upwork-technical-brief.md).
@@ -139,17 +142,18 @@ use it, and please credit them:
 
 | Project | Best for | Technique |
 |---|---|---|
-| [muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround) (MIT) | **GNOME Wayland** | D-Bus bridge implementing `org.gnome.Shell.Screenshot` with `grim`; tested on Fedora 43+, Ubuntu 24.04+, Arch |
+| [badereddine-mechergui/upwork-wayland-screenshot-fix](https://github.com/badereddine-mechergui/upwork-wayland-screenshot-fix) (MIT) | **GNOME Wayland** (verified on Upwork 5.8.0.35, Ubuntu 26.04) | patches `app.asar` to take a portal screenshot and adds an evdev keyboard/mouse activity counter |
+| [kellpossible/upwork-wayland](https://github.com/kellpossible/upwork-wayland) (MIT) | **KDE Plasma 6** (Rust) | `LD_PRELOAD` shim + xdg-desktop-portal screenshot + idle via `ext_idle_notify_v1` |
+| [muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround) (MIT) | GNOME (as claimed by its README) | D-Bus bridge implementing `org.gnome.Shell.Screenshot` with `grim`; see [prior art notes](docs/prior-art.md) |
 | [MarSoft/upwork-wayland](https://github.com/MarSoft/upwork-wayland) | **Sway / wlroots** | bridges Upwork's GNOME screenshot D-Bus interface to `grim` |
 | [tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland) (AUR `upwork-wayland`) | **Arch** (AUR) | shim library replacing Upwork's GDK capture calls, external capture command |
 | **this project** | **KDE** (tested) + all-in-one for the rest | black-frame detection at the exact GDK call, per-compositor backends, active-screen selection, crash fix, all-screens fix |
 
-More community projects (links only, not reviewed by me; found on GitHub):
+More community projects (code reviewed, see [docs/prior-art.md](docs/prior-art.md)):
 [drsh4dow/upwork-wlroots-bridge](https://github.com/drsh4dow/upwork-wlroots-bridge)
 (Rust, wlroots screenshot + idle D-Bus servers),
 [badereddine-mechergui/upwork-wayland-screenshot-fix](https://github.com/badereddine-mechergui/upwork-wayland-screenshot-fix)
 (GNOME Wayland),
-[kellpossible/upwork-wayland](https://github.com/kellpossible/upwork-wayland),
 [niiithish/upwork-wayland-hyprland](https://github.com/niiithish/upwork-wayland-hyprland)
 (Hyprland / Omarchy).
 
@@ -206,7 +210,7 @@ This project combines and builds on the work of others. Thank you:
   for Sway / wlroots.
 - **[muhammad-rafey/upwork-wayland-workaround](https://github.com/muhammad-rafey/upwork-wayland-workaround)**
   (MIT): the GNOME Wayland D-Bus bridge and the `XDG_SESSION_TYPE=x11` launcher
-  trick, tested on Fedora 43+, Ubuntu 24.04+ and Arch.
+  trick.
 - **[tiesselune/upwork-wayland](https://github.com/tiesselune/upwork-wayland)**
   (AUR `upwork-wayland`): replacing Upwork's GDK capture calls with a shim
   library and an external capture command.
