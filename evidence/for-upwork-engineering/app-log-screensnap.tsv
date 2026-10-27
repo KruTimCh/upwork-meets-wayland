@@ -1,0 +1,52 @@
+# Upwork 5.8.0-35 app log (~/.Upwork/Upwork/Logs), 2026-10-26, local time UTC+7. Only snap file name and size are kept; nothing else from the log.
+# .png = native snap (uta_native). A hex-named .jpg = the snap was replaced by the Electron desktopCapturer stitched image (confirmed black in the tracker/Work Diary for the 16:35 and 16:59 snaps; other .jpg rows were not individually inspected).
+# After the app.asar change (applied ~17:03) all-screens snaps stay native: screen.png, 1920x576 (3600x1080 scaled to 1920 wide).
+time	screenSnap.filename	width	height	kind
+2026-10-26T00:28:41	screen.png	1920	1080	native snap kept
+2026-10-26T00:49:11	screen.png	1920	1080	native snap kept
+2026-10-26T01:09:04	screen.png	1920	1080	native snap kept
+2026-10-26T01:12:36	screen.png	1920	1080	native snap kept
+2026-10-26T01:22:23	screen.png	1920	1080	native snap kept
+2026-10-26T01:38:08	screen.png	1920	1080	native snap kept
+2026-10-26T01:48:09	screen.png	1920	1080	native snap kept
+2026-10-26T01:58:34	screen.png	1920	1080	native snap kept
+2026-10-26T02:02:25	screen.png	1920	1080	native snap kept
+2026-10-26T02:10:28	a671639e-b.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T02:20:28	screen.png	1920	1080	native snap kept
+2026-10-26T02:21:44	screen.jpg	640	480	timeout fallback
+2026-10-26T02:38:26	screen.png	1920	1080	native snap kept
+2026-10-26T02:44:34	9689a96c-6.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T02:52:32	bf442b62-0.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T03:04:10	1e14547e-8.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T03:16:28	1766330f-6.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T03:26:21	fd28e77c-0.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T03:39:18	3c1eb25d-8.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T03:44:02	1297dfb2-2.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T16:29:23	screen.png	1920	1080	native snap kept
+2026-10-26T16:35:21	5fbb41b4-3.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T16:48:45	screen.png	1920	1080	native snap kept
+2026-10-26T16:59:37	7836b3bd-b.jpg	4053	1200	stitched desktopCapturer JPEG replaced the native snap
+2026-10-26T17:19:02	screen.png	1920	1080	native snap kept
+2026-10-26T17:26:21	screen.png	1920	576	native snap kept
+2026-10-26T17:37:32	screen.png	1920	576	native snap kept
+2026-10-26T17:45:02	screen.png	1920	576	native snap kept
+2026-10-26T17:54:22	screen.png	1920	576	native snap kept
+2026-10-26T18:59:10	screen.png	1920	1080	native snap kept
+2026-10-26T19:08:46	screen.png	1920	1080	native snap kept
+2026-10-26T19:16:19	screen.png	1920	1080	native snap kept
+2026-10-26T19:49:26	screen.png	1920	1080	native snap kept
+2026-10-26T19:54:36	screen.png	1920	1080	native snap kept
+2026-10-26T20:09:00	screen.png	1920	1080	native snap kept
+2026-10-26T20:27:14	screen.png	1920	1080	native snap kept
+2026-10-26T20:30:37	screen.png	1920	1080	native snap kept
+2026-10-26T20:43:19	screen.png	1920	1080	native snap kept
+2026-10-26T23:09:37	screen.png	1920	1080	native snap kept
+2026-10-26T23:15:46	screen.png	1920	1080	native snap kept
+2026-10-26T23:26:26	screen.png	1920	1080	native snap kept
+2026-10-26T23:30:41	screen.png	1920	1080	native snap kept
+2026-10-26T23:43:10	screen.png	1920	1080	native snap kept
+2026-10-26T23:58:44	screen.png	1920	1080	native snap kept
+
+# collectUserActivity timeouts (30 s). 17:08 was caused by a test variant that passed an invalid source type to desktopCapturer.getSources (the promise never resolves). The 02:22 one was not investigated:
+# 2026-10-26T02:22:13
+# 2026-10-26T17:08:58

@@ -34,6 +34,12 @@ Time Tracker screenshots are uploaded as black images, or the app shows
 
 ## Suggested product fixes (smallest first)
 
+0. **Lift the Wayland gate and use the native code that already exists.**
+   `uta_native.node` has `PortalDbusScreenshot`, `PlasmaDbusScreenshot` and
+   `GnomeDbusScreenshot`, but `collectUserActivity` returns an empty `screenSnap`
+   when `utaNative.isWayland()` is true, before `snapScreen` is called. Not tested
+   by us: treat as a lead.
+
 1. In `collectUserActivity`, reject blank frames before replacing the native
    snap (e.g. sample pixels of the thumbnail; or keep the native snap when the
    Electron image is uniformly black). One condition; fixes all-screens mode.

@@ -1,0 +1,56 @@
+# Call chain of the native snap in uta_native.node (5.8.0-35). Symbol names only, from nm / objdump.
+
+## relevant functions
+r kLoggingRequestId_GetScreenSnapAsync
+r kLoggingRequestId_define_session_type
+r kLoggingRequestId_OnScreenSnapCompleted
+t uta::(anonymous namespace)::FetchPixbufImageCallback(char const*, unsigned long, _GError**, void*)
+t uta::GetScreenSnap(Nan::FunctionCallbackInfo<v8::Value> const&)
+t uta::FetchPixbufImage(uta::ScreenSnap&, _GdkPixbuf*, unsigned int, unsigned int, bool, bool)
+t uta::DesktopSessionData::define_session_type()
+t uta::DesktopSessionData::define_session_type() [clone .part.0]
+t uta::GetScreenSnapAsync(Nan::FunctionCallbackInfo<v8::Value> const&)
+t uta::DesktopSessionAgent::SnapWholeDesktop(bool, bool)
+t uta::DesktopSessionAgent::SnapActiveDisplay(bool, bool)
+t uta::GnomeDbusScreenshot::SnapWholeDesktop()
+t uta::GnomeDbusScreenshot::SnapActiveDisplay()
+t uta::PlasmaDbusScreenshot::SnapWholeDesktop()
+t uta::PlasmaDbusScreenshot::SnapActiveDisplay()
+t uta::PortalDbusScreenshot::SnapWholeDesktop()
+t uta::PortalDbusScreenshot::SnapActiveDisplay()
+t uta::OnScreenSnapCompleted(int, uta::ScreenSnap*, void*, bool)
+
+## SnapWholeDesktop: callees (in order)
+<uta::DesktopSessionData::define_session_type()>
+long)>
+namespace)::FetchProcessesInfo(uta::ScreenSnap&)>
+<gdk_get_default_root_window>
+<gdk_window_get_width>
+<gdk_window_get_height>
+<gdk_window_get_origin>
+<gdk_pixbuf_get_from_window>
+<gdk_pixbuf_get_width>
+<gdk_pixbuf_get_height>
+bool)>
+<g_object_unref>
+<uta::DbusScreenshot::Create()>
+*0x10(%rax)
+*0x10(%rax)
+*0x18(%rax)
+<std::ios_base::ios_base()>
+>*)>
+<std::locale::locale()>
+>*)>
+long)>
+<uta::LogMessage::~LogMessage()>
+<__stack_chk_fail>
+
+## FetchPixbufImage: callees of interest
+<gdk_pixbuf_scale_simple>
+<gdk_pixbuf_save_to_callback>
+<gdk_pixbuf_save_to_callback>
+<g_object_unref>
+<gdk_pixbuf_save_to_callback>
+<gdk_pixbuf_save_to_callback>
+<g_object_unref>
+<gdk_pixbuf_scale_simple>
